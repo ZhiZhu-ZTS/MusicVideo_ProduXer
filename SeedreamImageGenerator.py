@@ -6,11 +6,16 @@ from volcenginesdkarkruntime import Ark
 
 
 class SeedreamImageGenerator:
-    def __init__(self, api_key: str, base_url: str = "https://ark.cn-beijing.volces.com/api/v3"):
+    def __init__(self, api_key: str, base_url: str = "https://ark.cn-beijing.volces.com/api/v3", output_dir: str = "output"):
         self.client = Ark(base_url=base_url, api_key=api_key)
         self.cur_dir = Path(__file__).parent
-        self.output_dir = self.cur_dir / "output"
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path(output_dir)
+        if not self.output_dir.is_absolute():
+            self.output_dir = self.cur_dir / self.output_dir
+
+        # 创建目录
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
 
     def generate_image(self, prompt: str, model: str = "doubao-seedream-4-0-250828",
                        size: str = "2K", watermark: bool = False) -> str:

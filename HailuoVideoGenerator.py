@@ -7,13 +7,17 @@ from pathlib import Path
 
 
 class HailuoVideoGenerator:
-    def __init__(self, api_key: str, base_url: str = "https://api.minimaxi.com/v1"):
+    def __init__(self, api_key: str, base_url: str = "https://api.minimaxi.com/v1", output_dir: str = "output"):
         self.api_key = api_key
         self.base_url = base_url
         self.headers = {"Authorization": f"Bearer {self.api_key}"}
         self.cur_dir = Path(__file__).parent
-        self.output_dir = self.cur_dir / "output_videos"
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path(output_dir)
+        if not self.output_dir.is_absolute():
+            self.output_dir = self.cur_dir / self.output_dir
+
+        # 创建目录
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def image_to_data_url(image_path: str) -> str:
@@ -72,7 +76,7 @@ class HailuoVideoGenerator:
             elif status == "Fail":
                 raise RuntimeError(f"视频生成失败: {data.get('error_message', '未知错误')}")
 
-    def fetch_video(self, file_id: str, index: int) -> Path:
+    def fetch_video(self, file_id: str, save_path: str) -> Path:
         """根据 file_id 获取下载链接并保存视频，返回文件路径"""
         url = f"{self.base_url}/files/retrieve"
         params = {"file_id": file_id}
@@ -83,11 +87,14 @@ class HailuoVideoGenerator:
         video_response = requests.get(download_url)
         video_response.raise_for_status()
 
-        filename = self.output_dir / f"hailuo_output{index}.mp4"
-        with open(filename, "wb") as f:
+        save_path = Path(save_path)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(save_path, "wb") as f:
             f.write(video_response.content)
-        print(f"✅ 视频已保存至 {filename}")
-        return filename
+
+        print(f"✅ 视频已保存至 {save_path}")
+        return save_path
+
 
 
 # 示例 main.py 集成用法
@@ -95,20 +102,12 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
     load_dotenv()
     API_KEY = os.getenv("MINIMAX_API_KEY")
-
     generator = HailuoVideoGenerator(api_key=API_KEY)
+    prompt = "男人对着镜头甜甜地微笑, 随即转身"
+    image_path = r"output\character_reference_20250928_022354.png"
+    task_id = generator.invoke_image_to_video(prompt, image_path)
+    
 
-    prompts = [
-        "女人对着镜头甜甜地微笑, 随即转身",
-        "女人戴上了眼镜."
-    ]
-    image_path = r"C:\\Users\\ASUS\\Downloads\\igm-202509181414-[__FN5wXumoua8Yvdh-Lzy].png"
 
-    task_ids = [generator.invoke_image_to_video(prompt, image_path) for prompt in prompts]
-
-    for i, task_id in enumerate(task_ids):
-        try:
-            file_id = generator.query_task_status(task_id)
-            generator.fetch_video(file_id, i)
-        except Exception as e:
-            print(f"任务 {task_id} 失败: {e}")
+    file_id = generator.query_task_status(task_id)
+    generator.fetch_video(file_id=file_id, save_path="output/test.mp4")  # 🔥 直接传完整路径

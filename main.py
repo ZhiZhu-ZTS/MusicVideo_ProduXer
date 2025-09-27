@@ -1,0 +1,2 @@
+from HailuoVideoGenerator import HailuoVideoGenerator as hailuo
+from SeedreamImageGenerator import SeedreamImageGenerator as seedream

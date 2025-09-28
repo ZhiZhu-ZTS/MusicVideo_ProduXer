@@ -11,9 +11,9 @@ class Shot:
         self.lyric = shot_config.get("lyric", "")
         self.stable = shot_config.get("stable", "")
         self.dynamic = shot_config.get("dynamic", "")
-        self.duration = shot_config.get("duration", 4)
+        self.duration = shot_config.get("duration", 6)
         self.sing = shot_config.get("sing", False)
-
+        self.character_in_scene = shot_config.get("character", False)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -54,17 +54,21 @@ class Shot:
         return save_path
 
     # --- 调用 hailuo 视频生成 ---
-    def generate_video(self, prompt: str = None, filename: str = None, use_image: bool = True):
+    def generate_video(self, prompt: str = None, filename: str = None, use_image: bool = True, duration: int = None):
         prompt = prompt or f"{self.stable}, {self.dynamic}"
+        duration = duration or self.duration
+        if duration <= 6: duration = 6
+        if duration > 6: duration = 10
+        print(f"generate duration:{duration} seconds.")
         # 以时间作为唯一标识
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = filename or f"shot_{self.id}_video_{timestamp}.mp4"
         save_path = str(self.output_dir / filename)
 
         if use_image and self.image_path:
-            task_id = self.hailuo.invoke_image_to_video(prompt, self.image_path)
+            task_id = self.hailuo.invoke_image_to_video(prompt, self.image_path, duration=duration)
         else:
-            task_id = self.hailuo.invoke_text_to_video(prompt)
+            task_id = self.hailuo.invoke_text_to_video(prompt, duration=duration)
 
         file_id = self.hailuo.query_task_status(task_id)
         print("shot的file_id:", file_id)

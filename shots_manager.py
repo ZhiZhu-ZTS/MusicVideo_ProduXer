@@ -78,3 +78,4 @@ class ShotsManager:
     def generate_reference(self):
         """根据character_description生成角色参考照"""
         return self.character_description.generate_image()
+

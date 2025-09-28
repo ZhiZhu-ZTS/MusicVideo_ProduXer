@@ -1,18 +1,20 @@
 from shots_manager import ShotsManager
+from shot import Shot
 import concurrent.futures
 import os
 
-def process_shot(shot, description_dir):
-    # 编辑图像
-    shot.edit_image(base_img_path=description_dir)
-    
-    # 生成视频
-    # shot.generate_video(use_image=True)
+def process_shot(shot:Shot, description_dir):
+    character_in_scene = shot.character_in_scene
+    if character_in_scene:
+        shot.edit_image(base_img_path=description_dir)
+        shot.generate_video(use_image=True)
+    else:
+        shot.generate_video(use_image=False)
     
     return f"Completed processing shot {shot.id}"
 
 if __name__ == "__main__":
-    manager = ShotsManager("shots.json", output_dir="output2")
+    manager = ShotsManager("shots.json", output_dir="output4")
 
     # 列出所有 shots
     manager.list_shots()

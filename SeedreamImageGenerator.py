@@ -1,6 +1,5 @@
 import base64
 import requests
-import shutil
 from pathlib import Path
 from volcenginesdkarkruntime import Ark
 

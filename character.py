@@ -3,14 +3,14 @@ from pathlib import Path
 from SeedreamImageGenerator import SeedreamImageGenerator 
 
 class CharacterReference:
-    def __init__(self, seedream_api_key: str, character_config: str, output_dir: str = "outputs"):
+    def __init__(self, seedream_client: SeedreamImageGenerator, character_config: str, output_dir: str = "outputs"):
         self.description = character_config
         
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # API 客户端
-        self.seedream = SeedreamImageGenerator(api_key=seedream_api_key, output_dir=output_dir)
+        self.seedream = seedream_client
 
         # 中间结果
         self.image_path = None

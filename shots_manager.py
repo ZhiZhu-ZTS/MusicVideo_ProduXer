@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 from shot import Shot
 from character import CharacterReference
+from SeedreamImageGenerator import SeedreamImageGenerator
+from HailuoVideoGenerator import HailuoVideoGenerator
 from dotenv import load_dotenv
 
 
@@ -15,26 +17,35 @@ class ShotsManager:
 
         # 加载环境变量
         load_dotenv()
-        self.hailuo_api_key = os.getenv("MINIMAX_API_KEY")
+        self.hailuo_api_key = os.getenv("MINIMAX_API_KEY") 
         self.seedream_api_key = os.getenv("ARK_API_KEY")
-        # 初始化characterReference类
-        self.character_description = self._load_shots()[1]
-        # 初始化 Shot 对象
-        self.shots = self._load_shots()[0]
+        
+        # 初始化全局API客户端
+        self.seedream = SeedreamImageGenerator(
+            api_key=self.seedream_api_key,
+            output_dir=self.output_dir
+        )
+        self.hailuo = HailuoVideoGenerator(
+            api_key=self.hailuo_api_key,
+            output_dir=self.output_dir
+        )
+        
+        # 初始化shots和Character
+        self.shots, self.character_description = self._load_shots()
 
     def _load_shots(self):
         """从 JSON 文件读取配置并实例化所有 Shot"""
         with open(self.json_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         character_description = CharacterReference(
-            seedream_api_key=self.seedream_api_key,
+            seedream_client=self.seedream,
             character_config=data["character_description"],
             output_dir=self.output_dir)
         shots = []
         for shot_config in data["shots"]:
             shot = Shot(
-                hailuo_api_key=self.hailuo_api_key,
-                seedream_api_key=self.seedream_api_key,
+                hailuo_client=self.hailuo,
+                seedream_client=self.seedream,
                 shot_config=shot_config,
                 output_dir=self.output_dir
             )

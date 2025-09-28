@@ -6,7 +6,7 @@ from HailuoVideoGenerator import HailuoVideoGenerator
 
 
 class Shot:
-    def __init__(self, hailuo_api_key, seedream_api_key, shot_config: dict, output_dir: str = "outputs"):
+    def __init__(self, hailuo_client:HailuoVideoGenerator, seedream_client:SeedreamImageGenerator, shot_config: dict, output_dir: str = "outputs"):
         self.id = shot_config["id"]
         self.lyric = shot_config.get("lyric", "")
         self.stable = shot_config.get("stable", "")
@@ -18,8 +18,8 @@ class Shot:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # API 客户端
-        self.seedream = SeedreamImageGenerator(api_key=seedream_api_key, output_dir=output_dir)
-        self.hailuo = HailuoVideoGenerator(api_key=hailuo_api_key, output_dir=output_dir)
+        self.seedream = seedream_client
+        self.hailuo = hailuo_client
 
         # 中间结果
         self.image_path = None
@@ -47,7 +47,7 @@ class Shot:
         filename = filename or f"shot_{self.id}_image_{timestamp}.png"
         save_path = str(self.output_dir / filename)
 
-        url = self.seedream.edit_image(base_image_path=base_img_path, prompt=prompt, size="2K")
+        url = self.seedream.edit_image(base_image_path=base_img_path, prompt=prompt)
         self.seedream.save_image_from_url(url, save_path)
         self.image_path = save_path
         print(f"✅ Shot {self.id}: 图像已保存 {save_path}")

@@ -22,6 +22,7 @@ class Shot:
         self.hailuo = hailuo_client
 
         # 中间结果
+        self.character_reference_path = None
         self.image_path = None
         self.video_path = None
 

@@ -14,7 +14,7 @@ class ShotsManager:
         self.json_path = Path(json_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-
+        self.reference_pic_dir = None
         # 加载环境变量
         load_dotenv()
         self.hailuo_api_key = os.getenv("MINIMAX_API_KEY") 
@@ -77,5 +77,14 @@ class ShotsManager:
     
     def generate_reference(self):
         """根据character_description生成角色参考照"""
-        return self.character_description.generate_image()
-
+        self.reference_pic_dir = self.character_description.generate_image()
+        return self.reference_pic_dir
+    
+    def generate_first_frame(self, shot_index, reference_dir: str = None):
+        """修改角色参考图以生成第一帧图像"""
+        shot = self.get_shot_by_id(shot_id=shot_index)
+        if reference_dir:
+            return shot.edit_image(base_img_path=reference_dir)
+        else:
+            return shot.edit_image(base_img_path=self.reference_pic_dir)
+    

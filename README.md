@@ -1,25 +1,99 @@
 # MusicVideo_ProduXer
-An MV automatic generation project that integrates multiple models, capable of providing end-to-end MV generation starting from lyrics or lyric descriptions, and supporting mid-process monitoring and optimisation through multiple iterations.
 
-# 从suno AI开始
-因为suno AI并没有开源或者开放API调用，故我们很遗憾的宣布，suno AI生成音乐部分，我们无法写成一个稳定的程序    
-诸位需要移步 https://suno.com/create 进行歌曲创作，所幸suno AI是有免费额度的    
-或者您可以选取我们example/input_music中的文件进行试运行    
-suno AI生成的结果，请重命名为input.mp3或input.wav，保存在input中    
-至于歌词，请调用LLM模型，它会做好的，注意制作歌词并提交给suno AI之前，请确保歌词中带有（前奏）（间奏）（尾奏）的标记，这些标记可以通过AI生成    
+An **automatic MV (Music Video) generation project** that integrates multiple models, capable of providing end-to-end MV generation starting from lyrics or lyric descriptions.
+It also supports mid-process monitoring and iterative optimization.
 
-# 运行主程序
-创建conda或者venv环境，注意python=3.10    
-在环境中安装requirements.txt    
-至于ffmpeg，请安装ffmpeg并添加至环境变量，注意不只是pip install ffmpeg    
+---
 
-在主程序中，请您键入您的歌词，注意，您键入的歌词中也需要带有（前奏）（间奏）（尾奏）的标记    
-等待程序抛出“请确认json”后，再在temp文件夹中，确认json是否符合您的要求，如果不符合，请给主程序指出，如“场景要保持一致”   
+## ⚙️ Environment Setup
 
-抽卡图片仅会在有人的段落中出现，在temp文件夹中，确认图片是否符合要求，如果不符合，程序会抛出prompt，请你修改prompt之后再输入，当你确认后，图片会被从temp文件夹移入temp/picture文件夹并编号    
+1. Create a virtual environment with **Python 3.10** using `venv` or `conda`.
+2. Install dependencies:
 
-抽卡视频时，和图片的操作一致    
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-视频生成后，程序会读取音频并进行切割，然后使用temp/video中的视频进行结合    
+---
 
-最后程序使用ffmpeg，通过temp中的.srt文件为MV提供字幕
+## 🎞 Preparing Your `shots.json` File
+
+To ensure stable execution, your `shots.json` must follow this structure:
+
+```json
+{
+  "character_description": "A stunningly handsome Chinese man in his late 20s, with sharp yet gentle facial features, pale flawless skin, and profound dark eyes. He has long black hair partially tied up in a loose bun at the back of his head, with several strands falling naturally around his face. He wears elegant ink-wash gradient linen robes in shades of charcoal gray and off-white, with flowing brushstroke patterns. The robes feature wide sleeves that billow in the wind. The overall aesthetic is ethereal, combining traditional Chinese elements with modern xianxia fantasy style. Full body shot, cinematic lighting, soft morning light, highly detailed, photorealistic, 8K resolution.",
+  "shots": [
+    {
+      "id": 0,
+      "lyric": "(Intro)",
+      "stable": "Wide cinematic shot, Chinese ink-wash style mountains. Morning mist drapes like silk ribbons around green peaks. Water reflects the sky, ultra-low saturation, serene atmosphere.",
+      "dynamic": "The camera slowly pushes forward through the mist, gliding silently as the fog flows gently.",
+      "duration": 4,
+      "sing": false,
+      "character": false
+    },
+    {
+      "id": 35,
+      "lyric": "The morning mist brushes past the mountain’s shoulder",
+      "stable": "Medium shot. The protagonist’s silhouette stands atop a mountain, facing the sea of clouds. Morning light outlines his figure. Black mid-length hair tied into a bun, dressed in ink-wash gradient linen robes, with a thin, wide-sleeved outer robe fluttering slightly.",
+      "dynamic": "The camera slowly circles from the protagonist’s side to behind, while the clouds in the background accelerate, visually ‘brushing past’ the mountain.",
+      "duration": 11,
+      "sing": false,
+      "character": true
+    }
+  ]
+}
+```
+
+### Key Fields
+
+* **`character_description`**: A detailed description of the MV’s main character.
+
+  * Used by **Seedream 4.0** to generate global character reference images.
+  * Refer to [Volcengine Prompt Guide](https://www.volcengine.com/docs/82379/1829186) for tips.
+
+* **`shots`**: A list of detailed shot descriptions.
+
+  * `id`: Shot ID, should be ordered chronologically.
+  * `lyric`: The lyric line for this shot.
+  * `stable`: Static prompt.
+  * `dynamic`: Dynamic prompt.
+  * `duration`: Duration of the shot in seconds.
+  * `sing`: Whether the character is singing. If `true`, **wan2.1 + Multitalk** will be used for lip-sync.
+  * `character`: Whether the character appears in the shot.
+
+    * If `false`: The shot is generated directly via static + dynamic prompts using [Hailuo text-to-video](https://hailuoai.com/create/text-to-video).
+    * If `true`: The first frame is generated from the static prompt + character reference, then passed to [Hailuo image-to-video](https://hailuoai.com/create/image-to-video) for full video generation.
+
+---
+
+## 🔑 Get Your API Keys
+
+This project relies on:
+
+* [MiniMax](https://platform.minimaxi.com/)
+* [Volcengine](https://www.volcengine.com/)
+
+1. Obtain your API keys.
+2. Create a `.env` file in the project root:
+
+   ```bash
+   touch .env
+   ```
+3. Add the following to `.env`:
+
+   ```env
+   ARK_API_KEY='your_volcengine_api_key'
+   MINIMAX_API_KEY='your_minimax_api_key'
+   ```
+
+---
+
+## 🖥 Run the UI
+
+Start the program with:
+
+```bash
+python main.py
+```

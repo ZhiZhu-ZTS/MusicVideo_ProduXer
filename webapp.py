@@ -49,7 +49,7 @@ class MVGeneratorUI:
                     gr.Markdown("### 角色参考图")
                     ref_btn = gr.Button("生成角色参考图", variant="primary")
                     ref_status = gr.Textbox(label="状态", interactive=False)
-                    ref_img = gr.Image(label="角色参考图", type="filepath", height=300)
+                    ref_img = gr.Image(label="角色参考图", type="filepath", height=500)
                 
                 with gr.Column(scale=2):
                     gr.Markdown("### 分镜列表")
@@ -62,6 +62,7 @@ class MVGeneratorUI:
                         headers=["ID", "歌词", "静态Prompt", "动态Prompt", "时长", "是否唱歌"],
                         datatype=["number", "str", "str", "str", "number", "bool"],
                         interactive=False,
+                        max_height=500
                     )
             
             # 事件绑定
@@ -106,7 +107,8 @@ class MVGeneratorUI:
                             edit_img_input = gr.Image(
                                 label="上传参考图进行修改",
                                 type="filepath",
-                                height=200
+                                height=200,
+                                value=self.manager.reference_pic_dir
                             )
                             edit_prompt = gr.Textbox(
                                 label="修改Prompt (可选)",
@@ -122,7 +124,7 @@ class MVGeneratorUI:
                         height=400
                     )
                     
-                    # 图像生成事件
+                    # 图像修改事件
                     
                     edit_img_btn.click(
                         fn=lambda img, prompt: self._edit_first_frame(shot_index, img, prompt),
@@ -175,20 +177,21 @@ class MVGeneratorUI:
         except Exception as e:
             return None, f"❌ 图像生成失败: {str(e)}"
     
-    def _edit_first_frame(self, shot_index: int, base_img: str, prompt: str = None):
+    def _edit_first_frame(self, shot_index: int, base_img: str=None, prompt: str = None):
         """修改第一帧图像（内部方法）"""
         try:
-            shot = self.manager.shots[shot_index]
+            shot=self.manager.shots[shot_index]
             shot_id = shot.id
-            path = shot.edit_image(base_img_path=base_img, prompt=prompt)
+            path = self.manager.generate_first_frame(shot_index=shot_index, reference_dir=base_img, prompt=prompt)
             return path, f"✅ 分镜 {shot_id} 图像修改成功"
         except Exception as e:
             return None, f"❌ 图像修改失败: {str(e)}"
     
-    def _generate_video(self, shot_id: int, prompt: str = None, duration: float = None):
+    def _generate_video(self, shot_index: int, prompt: str = None, duration: float = None):
         """生成视频（内部方法）"""
         try:
-            shot = self.manager.get_shot_by_id(shot_id)
+            shot = self.manager.shots[shot_index]
+            shot_id = shot.id
             path = shot.generate_video(prompt=prompt, duration=duration)
             return path, f"✅ 分镜 {shot_id} 视频生成成功"
         except Exception as e:

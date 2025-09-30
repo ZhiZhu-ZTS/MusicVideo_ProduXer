@@ -80,11 +80,11 @@ class ShotsManager:
         self.reference_pic_dir = self.character_description.generate_image()
         return self.reference_pic_dir
     
-    def generate_first_frame(self, shot_index, reference_dir: str = None):
+    def generate_first_frame(self, shot_index, reference_dir: str = None, prompt: str = None):
         """修改角色参考图以生成第一帧图像"""
-        shot = self.get_shot_by_id(shot_id=shot_index)
+        shot = self.shots[shot_index]
         if reference_dir:
-            return shot.edit_image(base_img_path=reference_dir)
+            return shot.edit_image(base_img_path=reference_dir, prompt=prompt)
         else:
-            return shot.edit_image(base_img_path=self.reference_pic_dir)
+            return shot.edit_image(base_img_path=self.reference_pic_dir, prompt=prompt)
     
